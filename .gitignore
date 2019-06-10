@@ -37,7 +37,11 @@
 # Cmake build
 cmake-build-debug/*
 
-# Images
+# Useless images
 *.jpg
 *.png
 *.gif
+# imges_T2/*
+
+# Specification file
+*.pdf

@@ -1,2 +1,2 @@
 # coinsDetection
-Software for reconize coins and detect them value
+Software for recognize coins and detect them value
