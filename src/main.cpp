@@ -19,6 +19,7 @@
 #include <opencv2/calib3d.hpp>
 #include <iostream>
 #include <list>
+#include <glob.h>
 
 #include "coinRecognize.h"
 
@@ -85,7 +86,69 @@ void HougeThreshold(int, void*){
 
 int main(int argc, char *argv[])
 {
-    src = imread("../images_T2/1.jpg" , CV_LOAD_IMAGE_COLOR);
+    String img_test = "../images_T2/1.jpg";
+    String img_train = "../coins-dataset/classified/total/20c/*";  //train_22_32.jpg";
+    String filename_20c = "20c_";
+
+    // preprocess images
+
+    // glob struct resides on the stack
+    glob_t glob_result;
+    memset(&glob_result, 0, sizeof(glob_result));
+    // do the glob operation
+    int return_value = glob((img_train + "*").c_str(), GLOB_TILDE, NULL, &glob_result);
+    if(return_value != 0) {
+        globfree(&glob_result);
+        stringstream ss;
+        ss << "glob() failed with return_value " << return_value << endl;
+        throw runtime_error(ss.str());
+    }
+
+    // collect all the filenames into a std::list<std::string>
+    vector<string> filenames;
+    for(size_t i = 0; i < glob_result.gl_pathc; ++i) {
+        filenames.emplace_back(string(glob_result.gl_pathv[i]));
+    }
+
+    // cleanup
+    globfree(&glob_result);
+    int i = 0;
+    for(auto & fileName : filenames){
+        cout << "i: " << i << endl;
+        Mat src = imread(fileName , CV_LOAD_IMAGE_COLOR);
+        cout << "Filename: " + fileName << endl;
+
+        if(!src.data){
+            cout << "Error on loading the image." << endl;
+
+            return -1;
+        }
+
+        coinRecognize cr;
+        vector<vector<Point>> coins = cr.findCoin(src);
+        vector<Point> biggest_coin;
+        biggest_coin = coins.front();
+        coins.pop_back();
+        double biggest_area = UINTMAX_MAX;
+        for(auto & coin : coins) {
+            double area = contourArea(coin);
+            if (area > biggest_area)
+                biggest_coin = coin;
+        }
+        Mat res = cr.blackOutside(src, biggest_coin);
+        String res_name = "../coins-dataset/classified/total/preprocessed/20c/20c_"+filename_20c+ to_string(i) +".jpg";
+        i++;
+
+        cout << res_name << endl;
+
+        imwrite(res_name, res);
+
+    }
+
+    /*
+    String img_test = "../images_T2/1.jpg";
+    String img_train = "../coins-dataset/classified/total/20c/train_22_32.jpg";
+    src = imread(img_train , CV_LOAD_IMAGE_COLOR);
 
     if(!src.data){
         cout << "Error on loading the image." << endl;
@@ -94,7 +157,16 @@ int main(int argc, char *argv[])
 
     coinRecognize cr;
     vector<vector<Point>> coins = cr.findCoin(src);
-    cr.blackOutside(src, coins[1]);
+    vector<Point> biggest_coin;
+    biggest_coin = coins.front();
+    coins.pop_back();
+    double biggest_area = UINTMAX_MAX;
+    for(auto & coin : coins) {
+        double area = contourArea(coin);
+        if (area > biggest_area)
+            biggest_coin = coin;
+    }
+    cr.blackOutside(src, biggest_coin);
 
     //namedWindow("Undistorted image", CV_WINDOW_NORMAL);
     //imshow("Undistorted image", edges);
@@ -108,7 +180,7 @@ int main(int argc, char *argv[])
     // Show the image
     //CannyThreshold(0, 0);
     //HougeThreshold(0,0);
-
+    */
     waitKey(0);
     return 0;
 }
