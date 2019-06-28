@@ -93,7 +93,8 @@ int main(int argc, char *argv[])
     }
 
     coinRecognize cr;
-    Mat edges = cr.test(src);
+    vector<vector<Point>> coins = cr.findCoin(src);
+    cr.blackOutside(src, coins[1]);
 
     //namedWindow("Undistorted image", CV_WINDOW_NORMAL);
     //imshow("Undistorted image", edges);
