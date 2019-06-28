@@ -45,3 +45,6 @@ cmake-build-debug/*
 
 # Specification file
 *.pdf
+
+# coins-dataset
+coins-dataset/*
