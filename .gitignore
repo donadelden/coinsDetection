@@ -48,3 +48,7 @@ cmake-build-debug/*
 
 # coins-dataset
 coins-dataset/*
+
+# other stuff
+leo/*
+

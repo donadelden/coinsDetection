@@ -9,8 +9,9 @@
 class coinRecognize {
 
 public:
-    std::vector<std::vector<cv::Point>> findCoin(cv::Mat img);
+    std::vector<std::vector<cv::Point>> findCoin(cv::Mat img, bool print_contours);
     cv::Mat blackOutside(cv::Mat img, std::vector<cv::Point> coin);
+    std::vector<std::string> result();
 
 };
 
