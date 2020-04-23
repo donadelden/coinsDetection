@@ -1,15 +1,12 @@
-/*
- * Created by denis on 10/06/19.
+/**
+ * Coin Recognize Software for Computer Vision course
+ * @file Main file for execution
  *
- * To do:
- * - detect coins
- *   Smoothing with a Gaussian filter
- *   Compute gradient (module and direction)
- *   Quantize the gradient angles
- *   Non-maxima suppression
- *   Thresholding with double threshold
+ * @author Denis Donadel <denis.donadel@studenti.unipd.it>
+ * @date 6 July 2019
+ * @version 1.0
+ * @since 1.0
  *
- * - identify them
  */
 
 
@@ -26,105 +23,45 @@
 using namespace cv;
 using namespace std;
 
+
+/**
+ * Detect coin inside an image
+ * @param path of the image (otherwise, it's used the default one)
+ * @return 0 for ok, -1 for error
+ */
 int main(int argc, char *argv[])
 {
-    string img_test = "../images_T2/1.jpg";
 
-    string type = "20c"; //20c - 50c - 1e - 2e
-
-    string img_train = "../coins-dataset/classified/total/"+type+"/*";  //train_22_32.jpg"
-    string res_name_base = "../coins-dataset/classified/total/preprocessed/"+type+"/"+type+"_";
-    string filename_20c = type+"_";
-
-
-    /// preprocessing images
-    // glob struct resides on the stack
-    glob_t glob_result;
-    memset(&glob_result, 0, sizeof(glob_result));
-    // do the glob operation
-    int return_value = glob((img_train + "*").c_str(), GLOB_TILDE, NULL, &glob_result);
-    if(return_value != 0) {
-        globfree(&glob_result);
-        stringstream ss;
-        ss << "glob() failed with return_value " << return_value << endl;
-        throw runtime_error(ss.str());
+    cout << "Welcome!\nLoad of the image..." << endl;
+    string path = "../images/pic/4.jpg"; // default images
+    if(argc == 2){ // if user pass his path to an images
+        path = argv[1];
     }
 
-    // collect all the filenames into a std::list<std::string>
-    vector<string> filenames;
-    for(size_t i = 0; i < glob_result.gl_pathc; ++i) {
-        filenames.emplace_back(string(glob_result.gl_pathv[i]));
-    }
-
-    // cleanup
-    globfree(&glob_result);
-
-
-    int i = 0;
-    for(auto & fileName : filenames){
-        cout << "i: " << i << endl;
-        Mat src = imread(fileName , CV_LOAD_IMAGE_COLOR);
-        cout << "Filename: " + fileName << endl;
-
-        if(!src.data){
-            cout << "Error on loading the image." << endl;
-
-            return -1;
-        }
-
-        coinRecognize cr;
-
-
-     /// find countours version
-        vector<vector<Point>> coins = cr.findCoin(src, false);
-
-        if(!coins.empty()) {
-            vector<Point> biggest_coin;
-            biggest_coin = coins.back();
-            coins.pop_back();
-            double biggest_area = contourArea(biggest_coin);
-            for (auto &coin : coins) {
-                double area = contourArea(coin);
-                if (area > biggest_area)
-                    biggest_coin = coin;
-            }
-            Mat res = cr.blackOutside(src, biggest_coin);
-            String res_name =
-                    res_name_base + filename_20c + to_string(i) + ".jpg";
-
-            cout << res_name << endl;
-
-            imwrite(res_name, res);
-        }
-        i++;
-    }
-
-/*
-
-    ///testing on one image
-    Mat src = imread("../coins-dataset/classified/total/20c/IMG_4210_1.jpg" , CV_LOAD_IMAGE_COLOR);
-
-    //Mat src = imread("../images_T2/2.jpg");
-
+    Mat src = imread(path);
     if(!src.data){
         cout << "Error on loading the image." << endl;
         return -1;
     }
+    cout << "Image correctly loaded." << endl;
 
-    coinRecognize cr;
-    vector<vector<Point>> coins = cr.findCoin(src, true);/*
-    vector<Point> biggest_coin;
-    biggest_coin = coins.back();
-    coins.pop_back();
-    double biggest_area = contourArea(biggest_coin);
-    for(auto & coin : coins) {
-        double area = contourArea(coin);
-        if (area > biggest_area)
-            biggest_coin = coin;
-    }
-    cr.blackOutside(src, biggest_coin);*/
+    // create the object
+    coinRecognize cr(src);
 
+    // findCoins
+    cout << "Begin finding coins..." << endl;
+    cr.findCoins(1);
+    cout << "done!" << endl;
 
+    // predict
+    cout << "Begin predictions generation..." << endl;
+    cr.result();
+    cout << "done!" << endl;
+
+    // print prediction
+    cout << "Begin printing predictions..." << endl;
+    cr.printResults();
+    cout << "done!" << endl;
 
     waitKey(0);
     return 0;

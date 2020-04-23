@@ -44,11 +44,16 @@ cmake-build-debug/*
 # imges_T2/*
 
 # Specification file
-*.pdf
+# *.pdf
 
 # coins-dataset
 coins-dataset/*
 
 # other stuff
 leo/*
+images/*
+*.zip
+dataset/*
+doc/*
+build/*
 
